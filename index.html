@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            width: 60%;
+            margin: 50px auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .form input {
+            padding: 8px;
+            width: 220px;
+            margin-bottom: 10px;
+        }
+
+        .form button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .form button:hover {
+            background-color: #45a049;
+        }
+
+        .search-box {
+            padding: 8px;
+            width: 250px;
+            margin: 15px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        .edit-btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-right: 6px;
+        }
+
+        .delete-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Student Management System</h2>
+
+    <div class="form">
+        <label>Name</label><br>
+        <input type="text" id="name"><br>
+
+        <label>Age</label><br>
+        <input type="number" id="age"><br>
+
+        <label>Course</label><br>
+        <input type="text" id="course"><br><br>
+
+        <button onclick="saveStudent()">Add Student</button>
+    </div>
+
+    <input type="text" class="search-box" id="searchBox"
+           placeholder="Search by name or course"
+           onkeyup="searchStudents()">
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Course</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="studentTable"></tbody>
+    </table>
+</div>
+
+<script>
+    let editIndex = null;
+
+    document.addEventListener("DOMContentLoaded", loadStudents);
+
+    function saveStudent() {
+        const name = document.getElementById("name").value.trim();
+        const age = document.getElementById("age").value.trim();
+        const course = document.getElementById("course").value.trim();
+
+        if (name === "" || age === "" || course === "") {
+            alert("All fields are required");
+            return;
+        }
+
+        if (age <= 0) {
+            alert("Please enter a valid age");
+            return;
+        }
+
+        const students = JSON.parse(localStorage.getItem("students")) || [];
+
+        if (editIndex === null) {
+            students.push({ name, age, course });
+        } else {
+            students[editIndex] = { name, age, course };
+            editIndex = null;
+            document.querySelector(".form button").innerText = "Add Student";
+        }
+
+        localStorage.setItem("students", JSON.stringify(students));
+        clearForm();
+        loadStudents();
+    }
+
+    function loadStudents() {
+        const students = JSON.parse(localStorage.getItem("students")) || [];
+        const table = document.getElementById("studentTable");
+        table.innerHTML = "";
+
+        students.forEach((student, index) => {
+            const row = table.insertRow();
+
+            row.insertCell(0).innerText = student.name;
+            row.insertCell(1).innerText = student.age;
+            row.insertCell(2).innerText = student.course;
+            row.insertCell(3).innerHTML =
+                `<button class="edit-btn" onclick="editStudent(${index})">Edit</button>
+                 <button class="delete-btn" onclick="deleteStudent(${index})">Delete</button>`;
+        });
+    }
+
+    function editStudent(index) {
+        const students = JSON.parse(localStorage.getItem("students"));
+
+        document.getElementById("name").value = students[index].name;
+        document.getElementById("age").value = students[index].age;
+        document.getElementById("course").value = students[index].course;
+
+        editIndex = index;
+        document.querySelector(".form button").innerText = "Update Student";
+    }
+
+    function deleteStudent(index) {
+        const students = JSON.parse(localStorage.getItem("students"));
+        students.splice(index, 1);
+        localStorage.setItem("students", JSON.stringify(students));
+        loadStudents();
+    }
+
+    function searchStudents() {
+        const keyword = document.getElementById("searchBox").value.toLowerCase();
+        const students = JSON.parse(localStorage.getItem("students")) || [];
+        const table = document.getElementById("studentTable");
+
+        table.innerHTML = "";
+
+        students.forEach((student, index) => {
+            if (
+                student.name.toLowerCase().includes(keyword) ||
+                student.course.toLowerCase().includes(keyword)
+            ) {
+                const row = table.insertRow();
+
+                row.insertCell(0).innerText = student.name;
+                row.insertCell(1).innerText = student.age;
+                row.insertCell(2).innerText = student.course;
+                row.insertCell(3).innerHTML =
+                    `<button class="edit-btn" onclick="editStudent(${index})">Edit</button>
+                     <button class="delete-btn" onclick="deleteStudent(${index})">Delete</button>`;
+            }
+        });
+    }
+
+    function clearForm() {
+        document.getElementById("name").value = "";
+        document.getElementById("age").value = "";
+        document.getElementById("course").value = "";
+    }
+</script>
+
+</body>
+</html>
